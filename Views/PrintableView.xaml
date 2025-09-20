@@ -1,0 +1,109 @@
+﻿<UserControl x:Class="PersianInvoicing.Views.PrintableView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Width="700" FontFamily="{StaticResource VazirmatnFont}" FlowDirection="RightToLeft">
+
+    <Grid Background="White" Margin="40">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Print Header -->
+        <Border Grid.Row="0" BorderBrush="Black" BorderThickness="0,0,0,2" Padding="0,0,0,20" Margin="0,0,0,25">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="شرکت نمونه تجارت پارس" FontSize="24" FontWeight="Bold" Foreground="Black"/>
+                    <TextBlock Text="متخصص در ارائه بهترین محصولات و خدمات" FontSize="12" Foreground="#666" Margin="0,3,0,0"/>
+                    <TextBlock Text="تهران، خیابان ولیعصر، پلاک ۱۲۳" FontSize="11" Foreground="#666" Margin="0,8,0,0"/>
+                    <TextBlock Text="تلفن: ۰۲۱-۱۲۳۴۵۶۷۸ | کد اقتصادی: ۱۲۳۴۵۶۷۸۹۰" FontSize="11" Foreground="#666"/>
+                </StackPanel>
+                <TextBlock Grid.Column="1" Text="صورتحساب فروش" FontSize="20" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Bottom" Foreground="Black"/>
+            </Grid>
+        </Border>
+
+        <!-- Invoice Details -->
+        <Grid Grid.Row="1" Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="{Binding CustomerName, StringFormat='نام مشتری: {0}'}" FontSize="14" FontWeight="SemiBold" Foreground="Black"/>
+            </StackPanel>
+            <StackPanel Grid.Column="1" HorizontalAlignment="Left">
+                <TextBlock Text="{Binding InvoiceNumber, StringFormat='شماره فاکتور: {0}'}" FontSize="12" Foreground="Black"/>
+                <TextBlock Text="{Binding IssueDate, StringFormat='تاریخ صدور: {0:yyyy/MM/dd}'}" FontSize="12" Foreground="Black" Margin="0,5,0,0"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Items Table -->
+        <Border Grid.Row="2" BorderBrush="Black" BorderThickness="1">
+            <ItemsControl ItemsSource="{Binding Items}">
+                <ItemsControl.Template>
+                    <ControlTemplate TargetType="ItemsControl">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Grid Grid.Row="0" Background="#EEE">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="50"/>
+                                    <ColumnDefinition Width="3*"/>
+                                    <ColumnDefinition Width="1.5*"/>
+                                    <ColumnDefinition Width="1.5*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="ردیف" FontWeight="Bold" Padding="5" Foreground="Black" HorizontalAlignment="Center"/>
+                                <TextBlock Grid.Column="1" Text="شرح کالا" FontWeight="Bold" Padding="5" Foreground="Black"/>
+                                <TextBlock Grid.Column="2" Text="تعداد" FontWeight="Bold" Padding="5" Foreground="Black" HorizontalAlignment="Center"/>
+                                <TextBlock Grid.Column="3" Text="مبلغ کل (ریال)" FontWeight="Bold" Padding="5" Foreground="Black" HorizontalAlignment="Center"/>
+                            </Grid>
+                            <ItemsPresenter Grid.Row="1"/>
+                        </Grid>
+                    </ControlTemplate>
+                </ItemsControl.Template>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="50"/>
+                                <ColumnDefinition Width="3*"/>
+                                <ColumnDefinition Width="1.5*"/>
+                                <ColumnDefinition Width="1.5*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" BorderBrush="#CCC" BorderThickness="0,0,1,1" Padding="5">
+                                <TextBlock Text="•" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Black"/>
+                            </Border>
+                            <Border Grid.Column="1" BorderBrush="#CCC" BorderThickness="0,0,1,1" Padding="5">
+                                <TextBlock Text="{Binding Product.ProductName}" VerticalAlignment="Center" Foreground="Black"/>
+                            </Border>
+                            <Border Grid.Column="2" BorderBrush="#CCC" BorderThickness="0,0,1,1" Padding="5">
+                                <TextBlock Text="{Binding Quantity}" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Black"/>
+                            </Border>
+                            <Border Grid.Column="3" BorderBrush="#CCC" BorderThickness="0,0,0,1" Padding="5">
+                                <TextBlock Text="{Binding RowTotal, StringFormat={}{0:N0}}" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Black"/>
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Border>
+
+        <!-- Footer -->
+        <Grid Grid.Row="3" Margin="0,20,0,0">
+            <TextBlock VerticalAlignment="Bottom" FontSize="10" Foreground="Gray" Text="با تشکر از خرید شما."/>
+            <StackPanel HorizontalAlignment="Left">
+                <TextBlock Text="{Binding TotalPrice, StringFormat='جمع کل: {0:N0} ریال'}" FontSize="12" Foreground="Black"/>
+                <TextBlock Text="{Binding Discount, StringFormat='تخفیف: {0:N0} ریال'}" FontSize="12" Foreground="Black"/>
+                <TextBlock Text="{Binding FinalPrice, StringFormat='مبلغ نهایی: {0:N0} ریال'}" FontSize="14" FontWeight="Bold" Foreground="Black" Margin="0,5,0,0"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

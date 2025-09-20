@@ -1,0 +1,112 @@
+﻿<UserControl x:Class="PersianInvoicing.Views.ProductsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FontFamily="{StaticResource VazirmatnFont}"
+             Loaded="ProductsView_Loaded">
+
+    <Grid Margin="20">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="25"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <ProgressBar Grid.ColumnSpan="3" Height="6" VerticalAlignment="Top" IsIndeterminate="{Binding IsLoading}" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
+        <!-- Products List -->
+        <Border Grid.Column="0" Background="{StaticResource SecondaryBackgroundBrush}" CornerRadius="15" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="10" ShadowDepth="3" Color="#20000000" Opacity="0.2"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Border Background="{StaticResource TertiaryBackgroundBrush}" CornerRadius="15,15,0,0" Padding="20">
+                    <TextBlock Text="📦 لیست کالاها و موجودی" FontSize="18" FontWeight="Bold"/>
+                </Border>
+
+                <Border Grid.Row="1" Padding="20,15">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Height="40" FontSize="14" Background="{StaticResource TertiaryBackgroundBrush}"/>
+                        <Button Grid.Column="1" Content="🔍 جستجو" Margin="15,0,0,0" Height="40" FontSize="14" Command="{Binding LoadProductsCommand}">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                    <Setter Property="Padding" Value="20,8"/>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <DataGrid Grid.Row="2" ItemsSource="{Binding ProductsList}" SelectedItem="{Binding SelectedProduct}" AutoGenerateColumns="False" IsReadOnly="True" Margin="15" RowHeight="45" FontSize="14">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="کد کالا" Binding="{Binding ProductCode}" Width="*"/>
+                        <DataGridTextColumn Header="نام کالا" Binding="{Binding ProductName}" Width="2*"/>
+                        <DataGridTextColumn Header="قیمت فروش" Binding="{Binding SalePrice, StringFormat='{}{0:N0}'}" Width="*"/>
+                        <DataGridTextColumn Header="موجودی" Binding="{Binding StockQuantity}" Width="*"/>
+                        <DataGridTextColumn Header="واحد" Binding="{Binding Unit}" Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+
+        <!-- Product Form -->
+        <Border Grid.Column="2" Background="{StaticResource SecondaryBackgroundBrush}" CornerRadius="15" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="10" ShadowDepth="3" Color="#20000000" Opacity="0.2"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Border Background="{StaticResource TertiaryBackgroundBrush}" CornerRadius="15,15,0,0" Padding="20">
+                    <TextBlock Text="✏️ افزودن / ویرایش کالا" FontSize="16" FontWeight="Bold"/>
+                </Border>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="20">
+                    <StackPanel>
+                        <TextBlock Text="کد کالا:" Margin="0,15,0,8" FontWeight="SemiBold"/>
+                        <TextBox Text="{Binding ProductCode, UpdateSourceTrigger=PropertyChanged}" Height="40" FontSize="14"/>
+
+                        <TextBlock Text="نام کالا:" Margin="0,15,0,8" FontWeight="SemiBold"/>
+                        <TextBox Text="{Binding ProductName, UpdateSourceTrigger=PropertyChanged}" Height="40" FontSize="14"/>
+
+                        <TextBlock Text="قیمت خرید:" Margin="0,15,0,8" FontWeight="SemiBold"/>
+                        <TextBox Text="{Binding PurchasePrice, UpdateSourceTrigger=PropertyChanged}" Height="40" FontSize="14"/>
+
+                        <TextBlock Text="قیمت فروش:" Margin="0,15,0,8" FontWeight="SemiBold"/>
+                        <TextBox Text="{Binding SalePrice, UpdateSourceTrigger=PropertyChanged}" Height="40" FontSize="14"/>
+
+                        <TextBlock Text="موجودی:" Margin="0,15,0,8" FontWeight="SemiBold"/>
+                        <TextBox Text="{Binding StockQuantity, UpdateSourceTrigger=PropertyChanged}" Height="40" FontSize="14"/>
+
+                        <TextBlock Text="واحد:" Margin="0,15,0,8" FontWeight="SemiBold"/>
+                        <ComboBox SelectedValue="{Binding Unit, UpdateSourceTrigger=PropertyChanged}" Height="40" FontSize="14">
+                            <ComboBoxItem Content="عدد"/>
+                            <ComboBoxItem Content="کیلوگرم"/>
+                            <ComboBoxItem Content="بسته"/>
+                            <ComboBoxItem Content="متر"/>
+                            <ComboBoxItem Content="لیتر"/>
+                        </ComboBox>
+
+                        <StackPanel Margin="0,25,0,0">
+                            <Button Content="➕ ثبت کالای جدید" Height="45" Margin="0,0,0,8" Background="{StaticResource SecondaryAccentBrush}" FontSize="14" FontWeight="SemiBold" Command="{Binding AddProductCommand}"/>
+                            <Button Content="✏️ ویرایش کالا" Height="45" Margin="0,0,0,8" Background="{StaticResource PrimaryAccentBrush}" FontSize="14" FontWeight="SemiBold" Command="{Binding UpdateProductCommand}"/>
+                            <Button Content="🗑️ حذف کالا" Height="45" Background="{StaticResource DangerAccentBrush}" FontSize="14" FontWeight="SemiBold" Command="{Binding DeleteProductCommand}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

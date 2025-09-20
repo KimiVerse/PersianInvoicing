@@ -1,0 +1,89 @@
+﻿<UserControl x:Class="PersianInvoicing.Views.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FontFamily="{StaticResource VazirmatnFont}"
+             Loaded="DashboardView_Loaded">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Loading Indicator -->
+        <ProgressBar Grid.RowSpan="2" Height="6" VerticalAlignment="Top"
+                     IsIndeterminate="{Binding IsLoading}" 
+                     Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
+        <!-- Summary Cards -->
+        <UniformGrid Rows="1" Columns="3" Grid.Row="0" Margin="0,0,0,25">
+            <Border Background="{StaticResource SecondaryBackgroundBrush}" BorderBrush="{StaticResource PrimaryAccentBrush}" BorderThickness="2" CornerRadius="15" Margin="8" Padding="25">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="15" ShadowDepth="5" Color="#20000000" Opacity="0.3"/>
+                </Border.Effect>
+                <StackPanel>
+                    <Border Background="{StaticResource PrimaryAccentBrush}" CornerRadius="12" Width="50" Height="50" HorizontalAlignment="Center" Margin="0,0,0,15">
+                        <TextBlock Text="📊" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="تعداد فاکتورهای امروز" FontWeight="SemiBold" HorizontalAlignment="Center" FontSize="14" Foreground="{StaticResource SecondaryTextBrush}"/>
+                    <TextBlock Text="{Binding TodayInvoiceCount}" FontSize="36" FontWeight="Bold" HorizontalAlignment="Center" Foreground="{StaticResource PrimaryAccentBrush}" Margin="0,8,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <Border Background="{StaticResource SecondaryBackgroundBrush}" BorderBrush="{StaticResource SecondaryAccentBrush}" BorderThickness="2" CornerRadius="15" Margin="8" Padding="25">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="15" ShadowDepth="5" Color="#20000000" Opacity="0.3"/>
+                </Border.Effect>
+                <StackPanel>
+                    <Border Background="{StaticResource SecondaryAccentBrush}" CornerRadius="12" Width="50" Height="50" HorizontalAlignment="Center" Margin="0,0,0,15">
+                        <TextBlock Text="💰" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="فروش کل امروز" FontWeight="SemiBold" HorizontalAlignment="Center" FontSize="14" Foreground="{StaticResource SecondaryTextBrush}"/>
+                    <TextBlock Text="{Binding TodayTotalSales, StringFormat='{}{0:N0} ریال'}" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center" Foreground="{StaticResource SecondaryAccentBrush}" Margin="0,8,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <Border Background="{StaticResource SecondaryBackgroundBrush}" BorderBrush="{StaticResource WarningAccentBrush}" BorderThickness="2" CornerRadius="15" Margin="8" Padding="25">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="15" ShadowDepth="5" Color="#20000000" Opacity="0.3"/>
+                </Border.Effect>
+                <StackPanel>
+                    <Border Background="{StaticResource WarningAccentBrush}" CornerRadius="12" Width="50" Height="50" HorizontalAlignment="Center" Margin="0,0,0,15">
+                        <TextBlock Text="📦" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="تعداد کل کالاها" FontWeight="SemiBold" HorizontalAlignment="Center" FontSize="14" Foreground="{StaticResource SecondaryTextBrush}"/>
+                    <TextBlock Text="{Binding TotalProductsCount}" FontSize="36" FontWeight="Bold" HorizontalAlignment="Center" Foreground="{StaticResource WarningAccentBrush}" Margin="0,8,0,0"/>
+                </StackPanel>
+            </Border>
+        </UniformGrid>
+
+        <!-- Recent Invoices -->
+        <Border Grid.Row="1" Background="{StaticResource SecondaryBackgroundBrush}" CornerRadius="15" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="10" ShadowDepth="3" Color="#20000000" Opacity="0.2"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Border Background="{StaticResource TertiaryBackgroundBrush}" CornerRadius="15,15,0,0" Padding="20">
+                    <Grid>
+                        <TextBlock Text="📋 فاکتورهای اخیر" FontSize="18" FontWeight="Bold"/>
+                        <Button Content="🔄 بروزرسانی" HorizontalAlignment="Left" Margin="12,6" FontSize="12" Command="{Binding LoadDashboardDataCommand}"/>
+                    </Grid>
+                </Border>
+
+                <DataGrid Grid.Row="1" ItemsSource="{Binding RecentInvoices}" AutoGenerateColumns="False" IsReadOnly="True" Margin="15" RowHeight="40" FontSize="14">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="شماره فاکتور" Binding="{Binding InvoiceNumber}" Width="*"/>
+                        <DataGridTextColumn Header="نام مشتری" Binding="{Binding CustomerName}" Width="2*"/>
+                        <DataGridTextColumn Header="تاریخ" Binding="{Binding IssueDate, StringFormat='{}{0:yyyy/MM/dd}'}" Width="*"/>
+                        <DataGridTextColumn Header="مبلغ نهایی" Binding="{Binding FinalPrice, StringFormat='{}{0:N0} ریال'}" Width="1.5*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
