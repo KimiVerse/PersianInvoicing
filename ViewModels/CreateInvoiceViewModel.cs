@@ -1,246 +1,101 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using Microsoft.EntityFrameworkCore;
-using PersianInvoicing.Data;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Windows.Input;
 using PersianInvoicing.Models;
+using PersianInvoicing.Data;
 using PersianInvoicing.Services;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace PersianInvoicing.ViewModels
 {
-    public partial class CreateInvoiceViewModel : ObservableObject
+    public class CreateInvoiceViewModel : INotifyPropertyChanged
     {
-        private readonly DatabaseContext _context;
-        private readonly IMessageService _messageService;
+        private readonly DatabaseContext _db;
         private readonly IPrintService _printService;
+        public Invoice CurrentInvoice { get; set; } = new();
+        public ObservableCollection<Product> Products { get; set; } = new();
+        public ObservableCollection<InvoiceItem> Items { get; set; } = new();
 
-        [ObservableProperty]
-        private string _customerName = string.Empty;
-
-        [ObservableProperty]
-        private string _invoiceNumber = string.Empty;
-
-        [ObservableProperty]
-        private DateTime _issueDate = DateTime.Now;
-
-        [ObservableProperty]
-        private ObservableCollection<InvoiceItem> _currentInvoiceItems = new();
-
-        [ObservableProperty]
-        private ObservableCollection<Product> _availableProducts = new();
-
-        [ObservableProperty]
-        private Product? _selectedProduct;
-
-        [ObservableProperty]
-        private int _quantity = 1;
-
-        [ObservableProperty]
-        private decimal _subTotal;
-
-        [ObservableProperty]
-        private decimal _discount;
-
-        [ObservableProperty]
-        private decimal _finalTotal;
-
-        [ObservableProperty]
-        private bool _isLoading;
-
-        [ObservableProperty]
-        private bool _isSaving;
-
-        [ObservableProperty]
-        private string _invoiceHeaderStyle = "Modern";
-
-        [ObservableProperty]
-        private ObservableCollection<string> _availableHeaderStyles = new()
+        public CreateInvoiceViewModel(DatabaseContext db, IPrintService printService)
         {
-            "Modern", "Classic", "Elegant", "Professional"
-        };
-
-        public CreateInvoiceViewModel(DatabaseContext context, IMessageService messageService, IPrintService printService)
-        {
-            _context = context;
-            _messageService = messageService;
+            _db = db;
             _printService = printService;
-            GenerateInvoiceNumber();
-            _ = LoadProductsAsync();
+            LoadProducts();
+            SaveCommand = new RelayCommand(SaveInvoice);
+            AddItemCommand = new RelayCommand<Product>(AddItem);
+            PrintCommand = new RelayCommand(PrintInvoice);
         }
 
-        [RelayCommand]
-        private void AddInvoiceItem()
+        private void LoadProducts()
         {
-            if (SelectedProduct == null)
+            Products = new ObservableCollection<Product>(_db.Products.ToList());
+            // Seed sample data if empty
+            if (!Products.Any())
             {
-                _messageService.ShowWarning("لطفاً یک کالا انتخاب کنید.");
-                return;
-            }
-            if (Quantity <= 0)
-            {
-                _messageService.ShowWarning("تعداد باید بزرگتر از صفر باشد.");
-                return;
-            }
-            if (Quantity > SelectedProduct.StockQuantity)
-            {
-                _messageService.ShowWarning($"موجودی کافی نیست. موجودی فعلی: {SelectedProduct.StockQuantity}");
-                return;
-            }
-
-            var existingItem = CurrentInvoiceItems.FirstOrDefault(i => i.ProductId == SelectedProduct.Id);
-            if (existingItem != null)
-            {
-                existingItem.Quantity += Quantity;
-                existingItem.RowTotal = existingItem.Quantity * existingItem.UnitPrice;
-            }
-            else
-            {
-                var item = new InvoiceItem
-                {
-                    Product = SelectedProduct,
-                    ProductId = SelectedProduct.Id,
-                    Quantity = Quantity,
-                    UnitPrice = SelectedProduct.SalePrice,
-                    RowTotal = Quantity * SelectedProduct.SalePrice
-                };
-                CurrentInvoiceItems.Add(item);
-            }
-
-            CalculateTotals();
-            SelectedProduct = null;
-            Quantity = 1;
-        }
-
-        [RelayCommand]
-        private void RemoveInvoiceItem(InvoiceItem? item)
-        {
-            if (item != null)
-            {
-                CurrentInvoiceItems.Remove(item);
-                CalculateTotals();
+                _db.Products.Add(new Product { Name = "محصول نمونه", Price = 10000 });
+                _db.SaveChanges();
+                LoadProducts();
             }
         }
 
-        [RelayCommand]
-        private async Task SaveInvoiceAsync()
+        private void AddItem(Product selectedProduct)
         {
-            if (string.IsNullOrWhiteSpace(CustomerName))
+            if (selectedProduct != null)
             {
-                _messageService.ShowWarning("لطفاً نام مشتری را وارد کنید.");
-                return;
+                var item = new InvoiceItem { Product = selectedProduct, Quantity = 1, UnitPrice = selectedProduct.Price };
+                Items.Add(item);
+                CurrentInvoice.Items.Add(item); // For total calc
+                OnPropertyChanged(nameof(CurrentInvoice));
             }
-            if (!CurrentInvoiceItems.Any())
-            {
-                _messageService.ShowWarning("لطفاً حداقل یک کالا به فاکتور اضافه کنید.");
-                return;
-            }
+        }
 
-            IsSaving = true;
+        private void SaveInvoice()
+        {
             try
             {
-                var invoice = new Invoice
-                {
-                    InvoiceNumber = InvoiceNumber,
-                    CustomerName = CustomerName,
-                    IssueDate = IssueDate,
-                    TotalPrice = SubTotal,
-                    Discount = Discount,
-                    FinalPrice = FinalTotal,
-                    Items = new List<InvoiceItem>() // EF will handle this
-                };
-
-                // Add invoice and items to context
-                _context.Invoices.Add(invoice);
-                foreach (var item in CurrentInvoiceItems)
-                {
-                    var productInDb = await _context.Products.FindAsync(item.ProductId);
-                    if (productInDb != null)
-                    {
-                        productInDb.StockQuantity -= item.Quantity;
-                        invoice.Items.Add(new InvoiceItem
-                        {
-                            Invoice = invoice,
-                            Product = productInDb,
-                            Quantity = item.Quantity,
-                            UnitPrice = item.UnitPrice,
-                            RowTotal = item.RowTotal
-                        });
-                    }
-                }
-
-                await _context.SaveChangesAsync();
-
-                _messageService.ShowSuccess($"فاکتور شماره {InvoiceNumber} با موفقیت ثبت شد.");
-
-                if (_messageService.ShowConfirmation("آیا می‌خواهید فاکتور را چاپ کنید؟"))
-                {
-                    await _printService.PrintInvoiceAsync(invoice);
-                }
-
-                ClearForm();
-                await LoadProductsAsync();
+                _db.Invoices.Add(CurrentInvoice);
+                _db.SaveChanges();
+                // Notify user (inject IMessageService)
             }
             catch (Exception ex)
             {
-                _messageService.ShowError($"خطا در ثبت فاکتور: {ex.Message}");
-            }
-            finally
-            {
-                IsSaving = false;
+                // Log error
+                System.Diagnostics.Debug.WriteLine(ex.Message);
             }
         }
 
-        private async Task LoadProductsAsync()
+        private void PrintInvoice()
         {
-            IsLoading = true;
-            try
-            {
-                var products = await _context.Products
-                    .AsNoTracking()
-                    .Where(p => p.StockQuantity > 0)
-                    .OrderBy(p => p.ProductName)
-                    .ToListAsync();
-
-                AvailableProducts.Clear();
-                foreach (var product in products)
-                {
-                    AvailableProducts.Add(product);
-                }
-            }
-            catch (Exception ex)
-            {
-                _messageService.ShowError($"خطا در بارگذاری کالاها: {ex.Message}");
-            }
-            finally
-            {
-                IsLoading = false;
-            }
+            _printService.PrintInvoice(CurrentInvoice);
         }
 
-        private void CalculateTotals()
+        public ICommand SaveCommand { get; }
+        public ICommand AddItemCommand { get; }
+        public ICommand PrintCommand { get; }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged(string propertyName)
         {
-            SubTotal = CurrentInvoiceItems.Sum(i => i.RowTotal);
-            FinalTotal = SubTotal - Discount;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+    }
 
-        partial void OnDiscountChanged(decimal value) => CalculateTotals();
+    // Simple RelayCommand implementation
+    public class RelayCommand : ICommand
+    {
+        private readonly Action _execute;
+        public RelayCommand(Action execute) => _execute = execute;
+        public event EventHandler CanExecuteChanged;
+        public bool CanExecute(object parameter) => true;
+        public void Execute(object parameter) => _execute();
+    }
 
-        private void GenerateInvoiceNumber()
-        {
-            InvoiceNumber = $"INV-{DateTime.Now:yyyyMMdd}-{new Random().Next(1000, 9999)}";
-        }
-
-        private void ClearForm()
-        {
-            CustomerName = string.Empty;
-            CurrentInvoiceItems.Clear();
-            Discount = 0;
-            GenerateInvoiceNumber();
-            CalculateTotals();
-        }
+    public class RelayCommand<T> : ICommand
+    {
+        private readonly Action<T> _execute;
+        public RelayCommand(Action<T> execute) => _execute = execute;
+        public event EventHandler CanExecuteChanged;
+        public bool CanExecute(object parameter) => true;
+        public void Execute(object parameter) => _execute((T)parameter);
     }
 }
