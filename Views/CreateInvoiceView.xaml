@@ -1,16 +1,21 @@
 ﻿<Window x:Class="PersianInvoicing.Views.CreateInvoiceView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:PersianInvoicing.Converters"
         Title="صدور فاکتور" Height="600" Width="800" FlowDirection="RightToLeft"
         FontFamily="{StaticResource Vazir}">
     <Window.Resources>
+        <!-- Make sure the converter class name matches exactly -->
         <local:ItemRowIndexConverter x:Key="RowIndexConverter" />
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/> <!-- Header -->
-            <RowDefinition Height="*"/> <!-- Items -->
-            <RowDefinition Height="Auto"/> <!-- Total & Buttons -->
+            <RowDefinition Height="Auto"/>
+            <!-- Header -->
+            <RowDefinition Height="*"/>
+            <!-- Items -->
+            <RowDefinition Height="Auto"/>
+            <!-- Total & Buttons -->
         </Grid.RowDefinitions>
         <!-- Header -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10">

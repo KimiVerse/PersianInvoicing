@@ -52,7 +52,7 @@ namespace PersianInvoicing.Views {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/PersianInvoicing;V1.0.0.0;component/views/printableview.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/PersianInvoicing;component/views/printableview.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\Views\PrintableView.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

@@ -1,5 +1,6 @@
 ﻿using PersianInvoicing.Models;
 using PersianInvoicing.Views;
+using System;
 using System.Windows;
 
 namespace PersianInvoicing.Services
@@ -8,13 +9,16 @@ namespace PersianInvoicing.Services
     {
         public void PrintInvoice(Invoice invoice)
         {
-            var printableWindow = new PrintableView { DataContext = invoice };
-            printableWindow.ShowDialog(); // Or use PrintDialog for actual printing
+            try
+            {
+                var printableWindow = new PrintableView();
+                printableWindow.DataContext = invoice;
+                printableWindow.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"خطا در چاپ: {ex.Message}", "خطا", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
-    }
-
-    public interface IPrintService
-    {
-        void PrintInvoice(Invoice invoice);
     }
 }

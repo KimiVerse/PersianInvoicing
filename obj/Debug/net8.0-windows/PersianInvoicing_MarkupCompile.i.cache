@@ -12,7 +12,7 @@ TRACE;DEBUG;NET;NET8_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR
 F:\GithubProjects\PersianInvoicing\PersianInvoicing\PersianInvoicing\App.xaml
 71167826526
 
-25241989596
+24815086314
 2371630282494
 MainWindow.xaml;Themes\Colors.xaml;Themes\InvoiceHeaderTemplates.xaml;Views\CreateInvoiceView.xaml;Views\DashboardView.xaml;Views\PrintableView.xaml;Views\ProductsView.xaml;
 
